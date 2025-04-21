@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Google OAuth</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h1>Login with Google</h1>
+    <div id="g_id_onload"
+         data-client_id="611822489037-c6arrfsu348eu9na5uf3c4v91o51dgdd.apps.googleusercontent.com"
+         data-callback="handleGoogleResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+    <div>
+        <button id="logout">Logout</button>
+    </div>
+    <script>
+        var login_btn = document.getElementsByClassName("g_id_signin");
+        alert(login_btn);
+        var token = localStorage.getItem("jwt");
+        if (token) {
+            login_btn.style.display = "none";
+        }
+        document.getElementById("logout").addEventListener('click', function () {
+            localStorage.removeItem("jwt");
+            alert("User logout successfully");
+        });
+        function handleGoogleResponse(response) {
+            console.log(response.credential);
+            console.log("Google response received");
+            // Send the ID token to your backend
+            fetch('/api/auth/google-login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ idToken: response.credential })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    if (data.isSuccess) {
+                        // Store the JWT token
+                        localStorage.setItem('jwt', data.token);
+                        // Redirect or update UI as needed
+                        alert('Login successful!');
+                    } else {
+                        alert('Login failed: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Login failed');
+                });
+        }
+    </script>
+</body>
+</html>
